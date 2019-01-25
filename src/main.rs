@@ -57,36 +57,39 @@ fn main() {
     let mut left_pressed = false;
     let mut right_pressed = false;
 
+    let mut running = true;
     // the main loop
-    events_loop.run_forever(|event| {
-        match event {
-            glutin::Event::WindowEvent { event, .. } => match event {
-                // Break from the main loop when the window is closed.
-                glutin::WindowEvent::CloseRequested => return glutin::ControlFlow::Break,
-                // Redraw the triangle when the window is resized.
-                glutin::WindowEvent::MouseWheel { delta, .. } => {
-                    if let glutin::MouseScrollDelta::LineDelta(_, scroll) = delta {
-                        if scroll > 0.0 {
-                            scale *= 1.1;
-                        } else if scroll < 0.0 {
-                            scale *= 0.9;
+    while running {
+        events_loop.poll_events(|event| {
+            match event {
+                glutin::Event::WindowEvent { event, .. } => match event {
+                    // Break from the main loop when the window is closed.
+                    glutin::WindowEvent::CloseRequested => running = false,
+                    // Redraw the triangle when the window is resized.
+                    glutin::WindowEvent::MouseWheel { delta, .. } => {
+                        if let glutin::MouseScrollDelta::LineDelta(_, scroll) = delta {
+                            if scroll < 0.0 {
+                                scale *= 1.1;
+                            } else if scroll > 0.0 {
+                                scale *= 0.9;
+                            }
                         }
-                    }
-                },
-                glutin::WindowEvent::KeyboardInput { input, .. } => {
-                    let state = input.state == glutin::ElementState::Pressed;
-                    match input.scancode {
-                        0x11 => { up_pressed = state }, // W
-                        0x1F => { down_pressed = state }, // S
-                        0x1E => { left_pressed = state }, // A
-                        0x20 => { right_pressed = state }, // D
-                        _ => {}
-                    }
+                    },
+                    glutin::WindowEvent::KeyboardInput { input, .. } => {
+                        let state = input.state == glutin::ElementState::Pressed;
+                        match input.scancode {
+                            0x11 => up_pressed = state, // W
+                            0x1F => down_pressed = state, // S
+                            0x1E => left_pressed = state, // A
+                            0x20 => right_pressed = state, // D
+                            _ => {}
+                        }
+                    },
+                    _ => (),
                 },
                 _ => (),
-            },
-            _ => (),
-        }
+            }
+        });
 
         let vx = if left_pressed && !right_pressed {
             -1.0
@@ -103,8 +106,8 @@ fn main() {
             0.0
         };
 
-        x += vx * 0.1 * scale;
-        y += vy * 0.1 * scale;
+        x += vx * 0.05 * scale;
+        y += vy * 0.05 * scale;
 
         // building the uniforms
         let uniforms = uniform! { scale: scale, offset: [x, y] };
@@ -116,7 +119,5 @@ fn main() {
         target.finish().unwrap();
 
         std::thread::sleep(std::time::Duration::from_millis(1000 / 60));
-
-        glutin::ControlFlow::Continue
-    });
+    }
 }
