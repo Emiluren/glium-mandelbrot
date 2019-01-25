@@ -1,0 +1,8 @@
+[package]
+name = "gl_mandelbrot"
+version = "0.1.0"
+authors = ["Emil Segerbäck <>"]
+edition = "2018"
+
+[dependencies]
+glium = "0.22.0"
